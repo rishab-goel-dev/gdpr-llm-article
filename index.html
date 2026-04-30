@@ -385,27 +385,28 @@
   <div class="reveal">
   <h2>What compliant design actually looks like</h2>
 
-  <h3>1. Pseudonymise before the prompt boundary</h3>
-  <p>Implement a tokenisation layer before any data touches an external LLM API. Replace <code>jane.doe@gmail.com</code> with <code>USR_7f3a9b</code> in your prompt. Maintain a secure lookup table that never leaves your perimeter. The LLM processes tokens. You re-hydrate locally. GDPR Recital 26 explicitly recognises pseudonymisation as a risk-reduction measure.</p>
+  <h3>1. For identity resolution — run the model locally</h3>
+  <p>This is the most important recommendation, and the one most teams skip because it feels heavy. For identity resolution and deduplication specifically, pseudonymisation simply doesn't work — you need to send real names, emails, and dates precisely because that's what the LLM needs to reason about. Masking those fields defeats the entire purpose.</p>
+  <p>The only architecturally clean answer is a self-hosted model. Deploying Ollama, vLLM, or a private model endpoint within your own EU cloud account means the data never leaves your perimeter. No cross-border transfer event. No vendor log retention you can't control. No fine-tuning risk. The compliance problem disappears at the infrastructure level rather than being patched at the data level.</p>
 
   <div class="callout-teal">
-    <p>This preserves most LLM utility while dramatically reducing exposure. It's the single highest-leverage change most pipelines can make today.</p>
+    <p>A locally hosted model removes the fundamental GDPR tension for identity resolution pipelines. It's the only approach where the right to erasure, data minimisation, and transfer restrictions can all be satisfied simultaneously.</p>
   </div>
 
-  <h3>2. Data Processing Agreements are not optional</h3>
-  <p>Under GDPR Article 28, every third-party that processes personal data on your behalf must be a contracted processor with a DPA in place. OpenAI, Google, Anthropic — all offer enterprise DPAs. If you're on a consumer tier with no DPA, you are out of compliance the moment personal data hits the API.</p>
+  <h3>2. For other LLM tasks — pseudonymise before the prompt boundary</h3>
+  <p>For tasks where identity isn't the direct input — summarisation, classification, anomaly detection, content generation — pseudonymisation is highly effective. Replace <code>jane.doe@gmail.com</code> with <code>USR_7f3a9b</code> before the prompt, maintain a secure lookup table that never leaves your perimeter, and re-hydrate locally after the response. The LLM processes tokens, never personal data. GDPR Recital 26 explicitly recognises pseudonymisation as a risk-reduction measure, and it genuinely works here.</p>
 
-  <h3>3. Log the prompt boundary, not just the pipeline</h3>
-  <p>Most teams log at the DB and warehouse level. Few log what goes into LLM prompts. You need immutable audit logs of every prompt containing personal data: timestamp, data subject identifiers (tokenised), fields included, and the API endpoint used. This is your evidence trail for subject access requests.</p>
+  <h3>3. Data Processing Agreements are not optional</h3>
+  <p>Under GDPR Article 28, every third-party that processes personal data on your behalf must be a contracted processor with a signed Data Processing Agreement (DPA) in place. OpenAI, Google, Anthropic — all offer enterprise DPAs. If you're on a consumer API tier with no DPA signed, you are out of compliance the moment personal data touches the endpoint.</p>
 
-  <h3>4. Consider on-premise models for sensitive use cases</h3>
-  <p>For high-volume identity resolution on sensitive data, private LLM deployments — Ollama, vLLM, or model endpoints on your own EU cloud account — eliminate the cross-border transfer risk entirely. The performance trade-off is real, but for regulated data it's often the only fully compliant path.</p>
+  <h3>4. Log the prompt boundary, not just the pipeline</h3>
+  <p>Most teams log at the DB and warehouse level. Few log what goes into LLM prompts. You need immutable audit logs of every prompt containing personal data: timestamp, data subject identifiers, fields included, and the API endpoint called. This is your evidence trail when subject access requests arrive.</p>
 
   <h3>5. Update your ROPA to include LLM processors</h3>
-  <p>Your ROPA must document every processor. Add a row for each LLM API you use: categories of data processed, transfer mechanism (SCC, adequacy decision, or BCR), and retention policy. If you can't fill that row — you shouldn't be sending that data.</p>
+  <p>Your Records of Processing Activities (ROPA) must document every processor. Add a row for each LLM API or self-hosted model endpoint you use: categories of data processed, transfer mechanism (Standard Contractual Clauses, adequacy decision, or Binding Corporate Rules), and retention policy. If you can't fill that row — you shouldn't be sending that data.</p>
 
   <div class="callout-amber">
-    <p>GDPR enforcement in 2024 issued €1.2 billion in fines. Cumulative penalties have exceeded €5.8 billion since 2018. "We didn't know the API retained logs" is not a legal defence.</p>
+    <p>GDPR enforcement in 2024 issued €1.2 billion in fines, with cumulative penalties exceeding €5.8 billion since 2018. Regulators are actively catching up to AI pipelines — the question is whether your architecture will hold up when they do.</p>
   </div>
   </div>
 
@@ -414,7 +415,7 @@
   <div class="reveal">
   <h2>The honest conclusion</h2>
   <p>GDPR was written in 2016 and passed in 2018. The drafters did not anticipate that organisations would be sending personal data as natural language tokens to probabilistic models running on cloud infrastructure in Virginia. The regulation still applies — courts and regulators have made that clear — but the technical reality of compliance has become genuinely hard.</p>
-  <p>The engineering community has a responsibility to close this gap. Not by avoiding LLMs — they're too useful — but by treating the prompt boundary as a security and compliance boundary. Pseudonymise at ingestion. Audit every external call. Demand signed DPAs from every vendor. Build data subject rights into the pipeline architecture, not as an afterthought to it.</p>
+  <p>The engineering community has a responsibility to close this gap. For identity resolution, that means running models locally — not patching a fundamentally exposed architecture with tokenisation that can't work for this use case. For everything else, pseudonymise at the prompt boundary, audit every external call, and demand signed DPAs from every vendor. Build data subject rights into the pipeline architecture, not as an afterthought to it.</p>
   <p>The GDPR illusion ends when we stop treating "the data never hit our database" as a compliance shield and start treating every API call as what it is — a data transfer event with legal obligations attached.</p>
   </div>
 
