@@ -39,6 +39,27 @@
   html { font-size: 16px; }
   body { background: var(--bg); color: var(--text); font-family: var(--font-sans); line-height: 1.7; -webkit-font-smoothing: antialiased; }
 
+  /* Reading progress */
+  .read-progress { position: fixed; top: 0; left: 0; width: 0%; height: 3px; background: var(--accent); z-index: 999; transition: width 0.1s linear; }
+
+  /* Share bar */
+  .share-bar { display: flex; align-items: center; gap: 10px; margin: 2rem 0 0; flex-wrap: wrap; }
+  .share-label { font-size: 13px; color: var(--text-faint); }
+  .share-btn { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 500; padding: 7px 14px; border-radius: 8px; border: var(--border); text-decoration: none; background: var(--surface2); color: var(--text); transition: background 0.12s; }
+  .share-btn:hover { background: var(--surface); }
+  .share-btn.linkedin { border-color: #0A66C2; color: #0A66C2; }
+  .share-btn.linkedin:hover { background: #EBF3FB; }
+  .share-btn.twitter { border-color: #000; color: #000; }
+  .share-btn.twitter:hover { background: #F0F0F0; }
+
+  /* Sources */
+  .sources { margin-top: 2rem; padding-top: 1.5rem; border-top: var(--border); }
+  .sources-title { font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-faint); margin-bottom: 0.85rem; }
+  .source-item { display: flex; gap: 8px; margin-bottom: 0.5rem; align-items: baseline; }
+  .source-num { font-size: 12px; color: var(--text-faint); font-family: var(--font-mono); flex-shrink: 0; }
+  .source-item a { font-size: 13px; color: var(--teal); text-decoration: none; line-height: 1.5; }
+  .source-item a:hover { text-decoration: underline; }
+
   /* Layout */
   .page-wrap { max-width: 740px; margin: 0 auto; padding: 0 1.5rem 6rem; }
 
@@ -169,6 +190,7 @@
 </head>
 <body>
 
+<div class="read-progress" id="read-progress"></div>
 <div class="page-wrap">
 
   <header class="site-header">
@@ -179,14 +201,14 @@
   <div class="kicker">Data Engineering · Privacy · AI Infrastructure</div>
   <h1>The GDPR Illusion:<br>How LLMs Break Privacy Before You Ship a Line of Code</h1>
 
-  <div class="lede">You tick the DPA boxes. You sign the SCCs. You add the consent banner. And then your ETL pipeline sends a user's full name, email, and purchase history to an LLM API over the public internet — and calls it "processing." True GDPR compliance doesn't survive first contact with modern AI pipelines.</div>
+  <div class="lede">You tick the Data Processing Agreement (DPA) boxes. You sign the Standard Contractual Clauses (SCCs). You add the consent banner. And then your ETL pipeline sends a user's full name, email, and purchase history to an LLM API over the public internet — and calls it "processing." True GDPR compliance doesn't survive first contact with modern AI pipelines.</div>
 
   <div class="byline">
     <span>Rishab</span>
     <span class="byline-dot"></span>
     <span>Solutions Architect</span>
     <span class="byline-dot"></span>
-    <span>8 min read</span>
+    <span id="read-time">8 min read</span>
   </div>
 
   <div class="tags">
@@ -244,7 +266,7 @@
     <p class="viz-note">By step 3, a copy of your user's personal data has transited a third-party server, likely outside the EU, with retention policies you don't control.</p>
   </div>
 
-  <p>The moment you include a real user's email, name, or any quasi-identifier in an LLM prompt, you've initiated a cross-border data transfer under GDPR Article 44. The LLM provider's API server is now a recipient. Their logging infrastructure is a processor. Their model fine-tuning pipeline — if you haven't opted out — is a second-tier processor. You needed SCCs, an adequacy decision, or Binding Corporate Rules for all of that. Most teams have none.</p>
+  <p>The moment you include a real user's email, name, or any quasi-identifier in an LLM prompt, you've initiated a cross-border data transfer under GDPR Article 44. The LLM provider's API server is now a recipient. Their logging infrastructure is a processor. Their model fine-tuning pipeline — if you haven't opted out — is a second-tier processor. You needed SCCs, an adequacy decision, or Binding Corporate Rules (BCRs) for all of that. Most teams have none.</p>
 
   <div class="callout">
     <p>The fiction: "We're just using the API transiently, nothing is stored." The reality: every API call is logged. Vendors retain prompts for abuse detection, billing, and debugging. That's storage. That's processing. That's a GDPR obligation.</p>
@@ -256,7 +278,7 @@
   <div class="reveal">
   <h2>The identity resolution trap</h2>
   <p>Identity resolution — matching "John Smith, johnsmith@gmail.com" to "J. Smith, j.smith@gmail.com, DOB 1987" — is one of the most common LLM use cases in data engineering. It's also one of the most dangerous from a compliance standpoint.</p>
-  <p>GDPR's data minimisation principle (Article 5(1)(c)) says you should process only what's necessary for the specific purpose. But to resolve identity accurately, LLMs need context — multiple fields, cross-referenced. You're not sending one field. You're sending a profile. And the purpose registered in your ROPA is almost certainly not "send customer PII to a US cloud AI provider for fuzzy matching."</p>
+  <p>GDPR's data minimisation principle (Article 5(1)(c)) says you should process only what's necessary for the specific purpose. But to resolve identity accurately, LLMs need context — multiple fields, cross-referenced. You're not sending one field. You're sending a profile. And the purpose registered in your Records of Processing Activities (ROPA) is almost certainly not "send customer PII to a US cloud AI provider for fuzzy matching."</p>
 
   <h3>What actually goes into the prompt</h3>
   <p>A typical identity resolution prompt might look like:</p>
@@ -336,11 +358,11 @@
   <div class="meter-wrap">
     <div class="meter-title">GDPR exposure by pipeline design</div>
     <div class="meter-row">
-      <div class="meter-row-top"><span class="meter-name">Raw PII in prompt, public API, no DPA</span><span class="meter-val">Critical</span></div>
+      <div class="meter-row-top"><span class="meter-name">Raw PII in prompt, public API, no Data Processing Agreement</span><span class="meter-val">Critical</span></div>
       <div class="meter-bar"><div class="meter-fill fill-red" style="width:95%"></div></div>
     </div>
     <div class="meter-row">
-      <div class="meter-row-top"><span class="meter-name">PII in prompt, enterprise API with DPA, US-based</span><span class="meter-val">High</span></div>
+      <div class="meter-row-top"><span class="meter-name">PII in prompt, enterprise API with DPA signed, US-based</span><span class="meter-val">High</span></div>
       <div class="meter-bar"><div class="meter-fill fill-red" style="width:70%"></div></div>
     </div>
     <div class="meter-row">
@@ -380,7 +402,7 @@
   <p>For high-volume identity resolution on sensitive data, private LLM deployments — Ollama, vLLM, or model endpoints on your own EU cloud account — eliminate the cross-border transfer risk entirely. The performance trade-off is real, but for regulated data it's often the only fully compliant path.</p>
 
   <h3>5. Update your ROPA to include LLM processors</h3>
-  <p>Your Records of Processing Activities must document every processor. Add a row for each LLM API you use: categories of data processed, transfer mechanism (SCC, adequacy decision, BCR), and retention policy. If you can't fill that row — you shouldn't be sending that data.</p>
+  <p>Your ROPA must document every processor. Add a row for each LLM API you use: categories of data processed, transfer mechanism (SCC, adequacy decision, or BCR), and retention policy. If you can't fill that row — you shouldn't be sending that data.</p>
 
   <div class="callout-amber">
     <p>GDPR enforcement in 2024 issued €1.2 billion in fines. Cumulative penalties have exceeded €5.8 billion since 2018. "We didn't know the API retained logs" is not a legal defence.</p>
@@ -392,7 +414,7 @@
   <div class="reveal">
   <h2>The honest conclusion</h2>
   <p>GDPR was written in 2016 and passed in 2018. The drafters did not anticipate that organisations would be sending personal data as natural language tokens to probabilistic models running on cloud infrastructure in Virginia. The regulation still applies — courts and regulators have made that clear — but the technical reality of compliance has become genuinely hard.</p>
-  <p>The engineering community has a responsibility to close this gap. Not by avoiding LLMs — they're too useful — but by treating the prompt boundary as a security and compliance boundary. Pseudonymise at ingestion. Audit every external call. Demand DPAs. Build data subject rights into the pipeline architecture, not as an afterthought to it.</p>
+  <p>The engineering community has a responsibility to close this gap. Not by avoiding LLMs — they're too useful — but by treating the prompt boundary as a security and compliance boundary. Pseudonymise at ingestion. Audit every external call. Demand signed DPAs from every vendor. Build data subject rights into the pipeline architecture, not as an afterthought to it.</p>
   <p>The GDPR illusion ends when we stop treating "the data never hit our database" as a compliance shield and start treating every API call as what it is — a data transfer event with legal obligations attached.</p>
   </div>
 
@@ -402,8 +424,27 @@
     <a href="https://www.linkedin.com/in/rishab1goel/" target="_blank">Connect on LinkedIn →</a>
   </div>
 
-  <div class="footer-note">
-    Sources: MDPI (2025) — GDPR and Large Language Models: Technical and Legal Obstacles · GDPR Local (2025) · Secure Privacy GDPR 2026 Guide · Pacific AI GDPR/LLM Guidance (2025) · arxiv.org LLM erasure research (2025).
+  <div class="share-bar reveal">
+    <span class="share-label">Share this article</span>
+    <a class="share-btn linkedin" href="https://www.linkedin.com/sharing/share-offsite/?url=PAGE_URL" target="_blank">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+      Share on LinkedIn
+    </a>
+    <a class="share-btn twitter" href="https://twitter.com/intent/tweet?text=True+GDPR+compliance+doesn%27t+survive+first+contact+with+modern+AI+pipelines.+Here%27s+why%3A&url=PAGE_URL" target="_blank">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.746l7.73-8.835L1.254 2.25H8.08l4.253 5.622 5.912-5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+      Share on X
+    </a>
+  </div>
+
+  <div class="sources reveal">
+    <div class="sources-title">Sources</div>
+    <div class="source-item"><span class="source-num">[1]</span><a href="https://www.mdpi.com/1999-5903/17/4/151" target="_blank">GDPR and Large Language Models: Technical and Legal Obstacles — MDPI Future Internet, March 2025</a></div>
+    <div class="source-item"><span class="source-num">[2]</span><a href="https://gdprlocal.com/large-language-models-llm-gdpr/" target="_blank">Large Language Models (LLM) GDPR Compliance — GDPR Local, December 2025</a></div>
+    <div class="source-item"><span class="source-num">[3]</span><a href="https://secureprivacy.ai/blog/gdpr-compliance-2026" target="_blank">GDPR Compliance in 2026: The Complete Guide — Secure Privacy</a></div>
+    <div class="source-item"><span class="source-num">[4]</span><a href="https://pacific.ai/managing-privacy-risks-llm-guidance/" target="_blank">Managing Privacy Risks in Large Language Models — Pacific AI, May 2025</a></div>
+    <div class="source-item"><span class="source-num">[5]</span><a href="https://arxiv.org/abs/2307.03941" target="_blank">Right to be Forgotten in the Era of Large Language Models — arXiv</a></div>
+    <div class="source-item"><span class="source-num">[6]</span><a href="https://www.influencers-time.com/right-to-be-forgotten-in-ai-llm-training-weights-explained/" target="_blank">Right to Be Forgotten in AI: LLM Training Weights Explained, March 2026</a></div>
+    <div class="source-item"><span class="source-num">[7]</span><a href="https://www.lasso.security/blog/llm-data-privacy" target="_blank">LLM Data Privacy: Protecting Enterprise Data in the World of AI — Lasso Security, March 2026</a></div>
   </div>
 
 </div>
@@ -512,6 +553,27 @@ const obs = new IntersectionObserver(entries => {
   entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); obs.unobserve(e.target); } });
 }, { threshold: 0.1 });
 document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+
+// Reading progress bar
+const progressBar = document.getElementById('read-progress');
+window.addEventListener('scroll', () => {
+  const doc = document.documentElement;
+  const scrolled = doc.scrollTop || document.body.scrollTop;
+  const total = doc.scrollHeight - doc.clientHeight;
+  progressBar.style.width = Math.min(100, Math.round(scrolled / total * 100)) + '%';
+}, { passive: true });
+
+// Dynamic read time
+const words = document.querySelector('.page-wrap').innerText.trim().split(/\s+/).length;
+const mins = Math.max(1, Math.round(words / 200));
+const rt = document.getElementById('read-time');
+if (rt) rt.textContent = mins + ' min read';
+
+// Share URL injection — replace PAGE_URL placeholders with current page URL
+const pageUrl = encodeURIComponent(window.location.href);
+document.querySelectorAll('a[href*="PAGE_URL"]').forEach(a => {
+  a.href = a.href.replace('PAGE_URL', pageUrl);
+});
 </script>
 </body>
 </html>
